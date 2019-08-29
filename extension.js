@@ -9,22 +9,16 @@ const vscode = require('vscode');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "highlight-std-headers" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World!');
-	});
-
+	let disposable = vscode.workspace.onDidOpenTextDocument(possiblyChangeLanguageMode);
 	context.subscriptions.push(disposable);
+
+	// This extension is activated after vscode is launched and files in the
+	// previous session are restored (in case window.restoreWindows is enabled).
+	// So we need to traverse the restored files and set the language mode
+	// if necessary.
+	for (let doc of vscode.workspace.textDocuments) {
+		possiblyChangeLanguageMode(doc);
+	}
 }
 exports.activate = activate;
 
@@ -34,4 +28,69 @@ function deactivate() {}
 module.exports = {
 	activate,
 	deactivate
+}
+
+/**
+ * @param {vscode.TextDocument} doc
+ */
+function possiblyChangeLanguageMode(doc) {
+	if (hasNoExtension(doc) && isCppHeader(doc)) {
+		vscode.languages.setTextDocumentLanguage(doc, "cpp");
+	}
+}
+
+/**
+ * @param {vscode.TextDocument} doc
+ * @returns {boolean}
+ */
+function hasNoExtension(doc) {
+	let path = doc.fileName;
+	let separatorIdx = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
+	let name = separatorIdx == -1 ? path : path.substr(separatorIdx + 1);
+	return !name.includes(".");
+}
+
+/**
+ * @param {vscode.TextDocument} doc
+ * @returns {boolean}
+ */
+function isCppHeader(doc) {
+	return hasIncludeGuard(doc) || hasMagicComment(doc);
+}
+
+/**
+ * @param {vscode.TextDocument} doc
+ * @returns {boolean}
+ */
+function hasIncludeGuard(doc) {
+	const MAX_SEARCH_LINES = 100;
+	let searchLines = Math.min(doc.lineCount, MAX_SEARCH_LINES);
+
+	// search #ifndef
+	let i;
+	for (i = 0; i < searchLines; i++) {
+		let line = doc.lineAt(i).text;
+		if (/#\s*ifndef\s+/.test(line)) {
+			break;
+		}
+	}
+
+	// found, expect #define in the next line
+	if (i != searchLines) {
+		let line = doc.lineAt(i + 1).text;
+		if (/#\s*define\s+/.test(line)) {
+			return true;
+		}
+	}
+
+	// not found
+	return false;
+}
+
+/**
+ * @param {vscode.TextDocument} doc
+ * @returns {boolean}
+ */
+function hasMagicComment(doc) {
+	return doc.lineAt(0).text.includes("-*- C++ -*-");
 }
