@@ -2,7 +2,7 @@
 	"name": "highlight-std-headers",
 	"displayName": "highlight-std-headers",
 	"description": "Automatically sets the language mode to C++ when you open extension-less standard headers.",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"engines": {
 		"vscode": "^1.37.0"
 	},
