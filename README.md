@@ -5,3 +5,7 @@ Automatically sets the language mode to C++ when you open extension-less standar
 ## Requirements
 
 VS Code 1.37.0 or above
+
+## License
+
+MIT
