@@ -2,7 +2,7 @@
 	"name": "highlight-std-headers",
 	"displayName": "highlight-std-headers",
 	"description": "Automatically sets the language mode to C++ when you open extension-less standard headers.",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "dsugiyama",
 	"repository": {
 		"type": "git",

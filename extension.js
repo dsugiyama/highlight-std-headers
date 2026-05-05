@@ -1,3 +1,5 @@
+const path = require('path');
+
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
@@ -33,20 +35,10 @@ module.exports = {
  * @param {vscode.TextDocument} doc
  */
 function possiblyChangeLanguageMode(doc) {
-	if (hasNoExtension(doc) && isCppHeader(doc)) {
+	let hasNoExtension = !path.basename(doc.fileName).includes(".");
+	if (hasNoExtension && isCppHeader(doc)) {
 		vscode.languages.setTextDocumentLanguage(doc, "cpp");
 	}
-}
-
-/**
- * @param {vscode.TextDocument} doc
- * @returns {boolean}
- */
-function hasNoExtension(doc) {
-	let path = doc.fileName;
-	let separatorIdx = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
-	let name = separatorIdx == -1 ? path : path.substr(separatorIdx + 1);
-	return !name.includes(".");
 }
 
 /**
@@ -62,7 +54,7 @@ function isCppHeader(doc) {
  * @returns {boolean}
  */
 function hasIncludeGuard(doc) {
-	const MAX_SEARCH_LINES = 100;
+	const MAX_SEARCH_LINES = 200;
 	let searchLines = Math.min(doc.lineCount, MAX_SEARCH_LINES);
 
 	// search #ifndef
